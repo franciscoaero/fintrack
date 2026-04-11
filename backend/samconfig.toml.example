@@ -1,0 +1,12 @@
+# Copie este arquivo para samconfig.toml e ajuste os valores conforme necessário.
+# NÃO versione o samconfig.toml no Git (já está no .gitignore).
+
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "fintrack-stack"
+resolve_s3 = true
+s3_prefix = "fintrack-stack"
+region = "sa-east-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+confirm_changeset = true

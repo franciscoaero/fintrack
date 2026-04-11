@@ -1,0 +1,22 @@
+# Variáveis de ambiente
+.env
+
+# AWS SAM
+samconfig.toml
+.aws-sam/
+
+# Python
+__pycache__/
+*.pyc
+.hypothesis/
+
+# Node.js
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Kiro spec files
+.kiro/

@@ -1,0 +1,208 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FinTrack - Aplicação serverless de gerenciamento de despesas pessoais com IA
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.12
+
+Resources:
+  # -------------------------------------------------------
+  # API Gateway REST API com CORS
+  # -------------------------------------------------------
+  FinTrackApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: fintrack-api
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  # -------------------------------------------------------
+  # Lambda Function — monolítica com roteamento interno
+  # -------------------------------------------------------
+  FinTrackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fintrack-api
+      Handler: src/app.lambda_handler
+      CodeUri: .
+      Role: !GetAtt FinTrackFunctionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref FinTrackExpensesTable
+          BUCKET_NAME: !Ref FinTrackReceiptsBucket
+          BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+          AWS_REGION_NAME: !Ref AWS::Region
+      Events:
+        # Expenses endpoints
+        CreateExpense:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /expenses
+            Method: POST
+        ListExpenses:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /expenses
+            Method: GET
+        GetExpense:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /expenses/{id}
+            Method: GET
+        UpdateExpense:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /expenses/{id}
+            Method: PUT
+        DeleteExpense:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /expenses/{id}
+            Method: DELETE
+        # Receipts endpoints
+        PresignReceipt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /receipts/presign
+            Method: POST
+        ProcessReceipt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /receipts/process
+            Method: POST
+        # Classify endpoint
+        ClassifyExpense:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /classify
+            Method: POST
+        # Insights endpoint
+        GenerateInsights:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FinTrackApi
+            Path: /insights
+            Method: POST
+
+  # -------------------------------------------------------
+  # IAM Role para Lambda
+  # -------------------------------------------------------
+  FinTrackFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: fintrack-api-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: fintrack-dynamodb-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt FinTrackExpensesTable.Arn
+                  - !Sub "${FinTrackExpensesTable.Arn}/index/*"
+        - PolicyName: fintrack-s3-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "${FinTrackReceiptsBucket.Arn}/*"
+        - PolicyName: fintrack-bedrock-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: "*"
+
+  # -------------------------------------------------------
+  # DynamoDB Table
+  # -------------------------------------------------------
+  FinTrackExpensesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: fintrack-expenses
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: CategoryIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: category
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # -------------------------------------------------------
+  # S3 Bucket para comprovantes
+  # -------------------------------------------------------
+  FinTrackReceiptsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub fintrack-receipts-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  ApiGatewayUrl:
+    Description: URL do API Gateway
+    Value: !Sub "https://${FinTrackApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  ExpensesTableName:
+    Description: Nome da tabela DynamoDB
+    Value: !Ref FinTrackExpensesTable
+  ReceiptsBucketName:
+    Description: Nome do bucket S3 para comprovantes
+    Value: !Ref FinTrackReceiptsBucket
