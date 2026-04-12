@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -7,12 +8,24 @@ CORS_HEADERS = {
 }
 
 
+class DecimalEncoder(json.JSONEncoder):
+    """JSON encoder that converts Decimal to int or float."""
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return int(obj) if obj == int(obj) else float(obj)
+        return super().default(obj)
+
+
+def _dumps(obj):
+    return json.dumps(obj, ensure_ascii=False, cls=DecimalEncoder)
+
+
 def success_response(data, status_code=200):
     """Return a JSON success response with CORS headers."""
     return {
         "statusCode": status_code,
         "headers": {**CORS_HEADERS, "Content-Type": "application/json"},
-        "body": json.dumps({"data": data}, ensure_ascii=False),
+        "body": _dumps({"data": data}),
     }
 
 
@@ -24,5 +37,5 @@ def error_response(message, status_code, fields=None):
     return {
         "statusCode": status_code,
         "headers": {**CORS_HEADERS, "Content-Type": "application/json"},
-        "body": json.dumps({"error": error_body}, ensure_ascii=False),
+        "body": _dumps({"error": error_body}),
     }

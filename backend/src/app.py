@@ -1,4 +1,5 @@
 import json
+import traceback
 from src.utils.response import success_response, error_response, CORS_HEADERS
 
 
@@ -77,5 +78,7 @@ def lambda_handler(event, context):
 
     try:
         return handler(event)
-    except Exception:
+    except Exception as exc:
+        print(f"[ERROR] {method} {resource}: {exc}")
+        traceback.print_exc()
         return error_response("Erro interno do servidor", 500)
