@@ -19,7 +19,11 @@ class OCRService:
         if s3_client is not None:
             self._s3 = s3_client
         else:
-            self._s3 = boto3.client("s3", region_name=region)
+            self._s3 = boto3.client(
+                "s3",
+                region_name=region,
+                endpoint_url=f"https://s3.{region}.amazonaws.com",
+            )
 
         if bedrock_client is not None:
             self._bedrock = bedrock_client

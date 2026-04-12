@@ -31,5 +31,8 @@ def process(event):
     try:
         result = _service.process_receipt(receipt_key)
         return success_response(result)
-    except Exception:
+    except Exception as exc:
+        print(f"[ERROR] process_receipt failed: {exc}")
+        import traceback
+        traceback.print_exc()
         return error_response("Não foi possível extrair dados da imagem.", 422)

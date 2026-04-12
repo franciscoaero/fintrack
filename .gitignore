@@ -20,3 +20,8 @@ dist/
 
 # Kiro spec files
 .kiro/
+
+# Test images
+*.jpeg
+*.jpg
+*.png
