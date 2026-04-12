@@ -71,19 +71,21 @@ export default function ReceiptUpload({ onDataExtracted, onError }) {
     try {
       // Step 1: Get presigned URL
       const presignResult = await getPresignedUrl(file.type, file.name);
-      const { upload_url, receipt_key } = presignResult?.data || {};
+      const { uploadUrl, receiptKey, upload_url, receipt_key } = presignResult?.data || {};
+      const finalUploadUrl = uploadUrl || upload_url;
+      const finalReceiptKey = receiptKey || receipt_key;
 
-      if (!upload_url || !receipt_key) {
+      if (!finalUploadUrl || !finalReceiptKey) {
         throw new Error('Falha ao obter URL de upload.');
       }
 
       // Step 2: Upload to S3
-      await uploadToS3(upload_url, file, file.type);
+      await uploadToS3(finalUploadUrl, file, file.type);
       setUploading(false);
 
       // Step 3: Process OCR
       setProcessing(true);
-      const ocrResult = await processReceipt(receipt_key);
+      const ocrResult = await processReceipt(finalReceiptKey);
       const extracted = ocrResult?.data || {};
 
       setProcessing(false);
@@ -91,7 +93,7 @@ export default function ReceiptUpload({ onDataExtracted, onError }) {
         description: extracted.description,
         amount: extracted.amount,
         date: extracted.date,
-        receiptKey: extracted.receipt_key || receipt_key,
+        receiptKey: extracted.receiptKey || extracted.receipt_key || finalReceiptKey,
       });
 
       resetState();
