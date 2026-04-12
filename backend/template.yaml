@@ -183,6 +183,16 @@ Resources:
             ProjectionType: ALL
 
   # -------------------------------------------------------
+  # CloudWatch Log Group (gerenciado pela stack)
+  # -------------------------------------------------------
+  FinTrackLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: /aws/lambda/fintrack-api
+      RetentionInDays: 7
+
+  # -------------------------------------------------------
   # S3 Bucket para comprovantes
   # -------------------------------------------------------
   FinTrackReceiptsBucket:
