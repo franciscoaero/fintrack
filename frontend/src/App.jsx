@@ -1,14 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
-
-// Placeholder pages — will be replaced by real components in later tasks
-function DashboardPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-      <p className="mt-2 text-gray-500">Visão geral das suas despesas.</p>
-    </div>
-  )
-}
+import Dashboard from './components/Dashboard.jsx'
 
 function ExpensesPage() {
   return (
@@ -72,7 +63,7 @@ export default function App() {
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/expenses/new" element={<NewExpensePage />} />
         </Routes>
