@@ -120,7 +120,7 @@ export default function ReceiptUpload({ onDataExtracted, onError }) {
         accept="image/jpeg,image/png"
         onChange={handleFileSelect}
         disabled={isLoading}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 disabled:opacity-50"
+        className="file:cursor-pointer block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 disabled:opacity-50"
       />
 
       {/* Error */}
