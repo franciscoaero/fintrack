@@ -45,8 +45,8 @@ export default function ExpenseList({ onEdit, onDelete }) {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-4 p-4 bg-white border border-gray-200 rounded-lg">
+        <div className="w-full sm:w-auto">
           <label htmlFor="filter-category" className="block text-xs font-medium text-gray-600 mb-1">
             Categoria
           </label>
@@ -54,7 +54,7 @@ export default function ExpenseList({ onEdit, onDelete }) {
             id="filter-category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Todas</option>
             {CATEGORIES.map((cat) => (
@@ -63,7 +63,7 @@ export default function ExpenseList({ onEdit, onDelete }) {
           </select>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <label htmlFor="filter-start" className="block text-xs font-medium text-gray-600 mb-1">
             Data inicial
           </label>
@@ -72,11 +72,11 @@ export default function ExpenseList({ onEdit, onDelete }) {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <label htmlFor="filter-end" className="block text-xs font-medium text-gray-600 mb-1">
             Data final
           </label>
@@ -85,7 +85,7 @@ export default function ExpenseList({ onEdit, onDelete }) {
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </div>
