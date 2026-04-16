@@ -25,7 +25,7 @@ export default function ExpenseItem({ expense, onEdit, onDelete }) {
   const badgeClass = CATEGORY_COLORS[expense.category] || CATEGORY_COLORS['Outros'];
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{expense.description}</p>
         <div className="flex items-center gap-3 mt-1">
@@ -39,17 +39,17 @@ export default function ExpenseItem({ expense, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 ml-4 shrink-0">
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <button
           onClick={() => onEdit(expense)}
-          className="px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors"
+          className="w-full sm:w-auto px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors"
           title="Editar despesa"
         >
           Editar
         </button>
         <button
           onClick={() => onDelete(expense.expenseId)}
-          className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+          className="w-full sm:w-auto px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
           title="Excluir despesa"
         >
           Excluir
