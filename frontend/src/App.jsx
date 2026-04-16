@@ -1,69 +1,94 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, NavLink, useNavigate, useParams } from 'react-router-dom'
-import Dashboard from './components/Dashboard.jsx'
-import ExpenseList from './components/ExpenseList.jsx'
-import ExpenseForm from './components/ExpenseForm.jsx'
-import ReceiptUpload from './components/ReceiptUpload.jsx'
-import ConfirmDialog from './components/ConfirmDialog.jsx'
+import { useState, useEffect, useCallback } from "react";
+import {
+  Routes,
+  Route,
+  NavLink,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import Dashboard from "./components/Dashboard.jsx";
+import ExpenseList from "./components/ExpenseList.jsx";
+import ExpenseForm from "./components/ExpenseForm.jsx";
+import ReceiptUpload from "./components/ReceiptUpload.jsx";
+import ConfirmDialog from "./components/ConfirmDialog.jsx";
 import {
   createExpense,
   getExpense,
   updateExpense,
   deleteExpense,
-} from './services/expenseService.js'
+} from "./services/expenseService.js";
 
 /* ------------------------------------------------------------------ */
-/*  Toast helper                                                       */
+/* Toast helper */
 /* ------------------------------------------------------------------ */
 function Toast({ message, onClose }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000)
-    return () => clearTimeout(timer)
-  }, [onClose])
-
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
   return (
     <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-300 text-green-800 px-5 py-3 rounded-lg shadow-lg text-sm animate-fade-in">
       {message}
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/*  ExpensesPage — /expenses                                           */
+/* Hamburger icon */
+/* ------------------------------------------------------------------ */
+function HamburgerIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <line x1="3" y1="5" x2="17" y2="5" />
+      <line x1="3" y1="10" x2="17" y2="10" />
+      <line x1="3" y1="15" x2="17" y2="15" />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* ExpensesPage — /expenses */
 /* ------------------------------------------------------------------ */
 function ExpensesPage() {
-  const navigate = useNavigate()
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [pendingDeleteId, setPendingDeleteId] = useState(null)
-  const [toast, setToast] = useState('')
-  const [refreshKey, setRefreshKey] = useState(0)
+  const navigate = useNavigate();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [toast, setToast] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   function handleEdit(expense) {
-    navigate(`/expenses/${expense.expenseId}/edit`)
+    navigate(`/expenses/${expense.expenseId}/edit`);
   }
-
   function handleDeleteClick(expenseId) {
-    setPendingDeleteId(expenseId)
-    setConfirmOpen(true)
+    setPendingDeleteId(expenseId);
+    setConfirmOpen(true);
   }
 
   async function handleConfirmDelete() {
-    if (!pendingDeleteId) return
+    if (!pendingDeleteId) return;
     try {
-      await deleteExpense(pendingDeleteId)
-      setToast('Despesa excluída com sucesso!')
-      setRefreshKey((k) => k + 1)
+      await deleteExpense(pendingDeleteId);
+      setToast("Despesa excluída com sucesso!");
+      setRefreshKey((k) => k + 1);
     } catch {
-      setToast('Erro ao excluir despesa.')
+      setToast("Erro ao excluir despesa.");
     } finally {
-      setConfirmOpen(false)
-      setPendingDeleteId(null)
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   }
 
   function handleCancelDelete() {
-    setConfirmOpen(false)
-    setPendingDeleteId(null)
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
   }
 
   return (
@@ -71,19 +96,17 @@ function ExpensesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Despesas</h1>
         <button
-          onClick={() => navigate('/expenses/new')}
+          onClick={() => navigate("/expenses/new")}
           className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
         >
           + Nova Despesa
         </button>
       </div>
-
       <ExpenseList
         key={refreshKey}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
       />
-
       <ConfirmDialog
         isOpen={confirmOpen}
         title="Excluir Despesa"
@@ -91,132 +114,104 @@ function ExpensesPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />
-
-      {toast && <Toast message={toast} onClose={() => setToast('')} />}
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/*  NewExpensePage — /expenses/new                                     */
+/* NewExpensePage — /expenses/new */
 /* ------------------------------------------------------------------ */
 function NewExpensePage() {
-  const navigate = useNavigate()
-  const [ocrData, setOcrData] = useState(null)
-
-  function handleOcrExtracted(data) {
-    setOcrData(data)
-  }
-
-  function handleOcrError() {
-    // User can fill manually — no blocking action needed
-  }
+  const navigate = useNavigate();
+  const [ocrData, setOcrData] = useState(null);
 
   async function handleSubmit(expenseInput) {
-    // Attach receiptKey from OCR if available
     const payload = ocrData?.receiptKey
       ? { ...expenseInput, receiptKey: ocrData.receiptKey }
-      : expenseInput
-    await createExpense(payload)
-    navigate('/expenses')
-  }
-
-  function handleCancel() {
-    navigate('/expenses')
+      : expenseInput;
+    await createExpense(payload);
+    navigate("/expenses");
   }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Nova Despesa</h1>
-
-      {/* Optional receipt upload */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">
           📷 Comprovante (opcional)
         </h2>
-        <ReceiptUpload
-          onDataExtracted={handleOcrExtracted}
-          onError={handleOcrError}
-        />
+        <ReceiptUpload onDataExtracted={setOcrData} onError={() => {}} />
       </div>
-
-      {/* Expense form */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <ExpenseForm
           initialData={ocrData}
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
+          onCancel={() => navigate("/expenses")}
         />
       </div>
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/*  EditExpensePage — /expenses/:id/edit                               */
+/* EditExpensePage — /expenses/:id/edit */
 /* ------------------------------------------------------------------ */
 function EditExpensePage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [expense, setExpense] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [expense, setExpense] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const fetchExpense = useCallback(async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
     try {
-      const result = await getExpense(id)
-      const data = result?.data
-      if (!data) {
-        setError('Despesa não encontrada.')
-      } else {
-        setExpense(data)
-      }
+      const result = await getExpense(id);
+      const data = result?.data;
+      if (!data) setError("Despesa não encontrada.");
+      else setExpense(data);
     } catch {
-      setError('Erro ao carregar despesa.')
+      setError("Erro ao carregar despesa.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [id])
+  }, [id]);
 
   useEffect(() => {
-    fetchExpense()
-  }, [fetchExpense])
+    fetchExpense();
+  }, [fetchExpense]);
 
   async function handleSubmit(expenseInput) {
-    await updateExpense(id, expenseInput)
-    navigate('/expenses')
+    await updateExpense(id, expenseInput);
+    navigate("/expenses");
   }
 
-  function handleCancel() {
-    navigate('/expenses')
-  }
-
-  if (loading) {
+  if (loading)
     return (
       <div className="flex items-center justify-center py-24">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-        <span className="ml-3 text-sm text-gray-500">Carregando despesa...</span>
+        <span className="ml-3 text-sm text-gray-500">
+          Carregando despesa...
+        </span>
       </div>
-    )
-  }
+    );
 
-  if (error) {
+  if (error)
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
         <button
-          onClick={() => navigate('/expenses')}
+          onClick={() => navigate("/expenses")}
           className="mt-4 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
         >
           Voltar para Despesas
         </button>
       </div>
-    )
-  }
+    );
 
   return (
     <div className="p-6 space-y-6">
@@ -225,59 +220,112 @@ function EditExpensePage() {
         <ExpenseForm
           expense={expense}
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
+          onCancel={() => navigate("/expenses")}
         />
       </div>
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Navigation items                                                   */
+/* Navigation items */
 /* ------------------------------------------------------------------ */
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/expenses', label: 'Despesas', icon: '💰' },
-  { to: '/expenses/new', label: 'Nova Despesa', icon: '➕' },
-]
+  { to: "/", label: "Dashboard", icon: "📊" },
+  { to: "/expenses", label: "Despesas", icon: "💰" },
+  { to: "/expenses/new", label: "Nova Despesa", icon: "➕" },
+];
 
 /* ------------------------------------------------------------------ */
-/*  App — root layout with sidebar + routes                            */
+/* App — root layout with collapsible sidebar + routes */
 /* ------------------------------------------------------------------ */
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    function handleResize() {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      setSidebarOpen(!mobile)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   return (
     <div className="flex min-h-screen bg-gray-50">
+
+      {/* Overlay escuro (só mobile, só quando aberto) */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-primary-600">💲 FinTrack</h1>
-          <p className="text-xs text-gray-400 mt-1">Gerenciador de Despesas</p>
+      <aside
+        className={`
+          bg-white border-r border-gray-200 flex flex-col transition-all duration-300 overflow-hidden flex-shrink-0
+          ${isMobile
+            ? `fixed inset-y-0 left-0 z-30 ${sidebarOpen ? 'w-64' : 'w-16'}`
+            : `relative ${sidebarOpen ? 'w-64' : 'w-16'}`
+          }
+        `}
+      >
+        {/* Header com hamburguer */}
+        <div className={`border-b border-gray-200 flex items-center h-16 px-3 ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+          {sidebarOpen && (
+            <div>
+              <h1 className="text-xl font-bold text-primary-600">💲 FinTrack</h1>
+              <p className="text-xs text-gray-400">Gerenciador de Despesas</p>
+            </div>
+          )}
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors flex-shrink-0"
+            title={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
+          >
+            <HamburgerIcon />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Nav */}
+        <nav className="flex-1 p-2 space-y-1">
           {navItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/' || to === '/expenses'}
+              onClick={() => isMobile && setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                ${sidebarOpen ? '' : 'justify-center'}
+                ${isActive
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`
               }
+              title={!sidebarOpen ? label : undefined}
             >
-              <span>{icon}</span>
-              {label}
+              <span className="text-base flex-shrink-0">{icon}</span>
+              {sidebarOpen && label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-200 text-xs text-gray-400">
-          FinTrack MVP &copy; {new Date().getFullYear()}
-        </div>
+        {/* Footer */}
+        {sidebarOpen && (
+          <div className="p-4 border-t border-gray-200 text-xs text-gray-400">
+            FinTrack MVP &copy; {new Date().getFullYear()}
+          </div>
+        )}
       </aside>
+
+      {/* Espaçador para mobile (mantém o main no lugar quando sidebar é fixed) */}
+      {isMobile && <div className="w-16 flex-shrink-0" />}
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
