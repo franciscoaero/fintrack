@@ -21,7 +21,8 @@ dist/
 # Kiro spec files
 .kiro/
 
-# Test images
+# Test images and videos
 *.jpeg
 *.jpg
 *.png
+*.mov

@@ -2,6 +2,8 @@
 
 Aplicação web serverless para gerenciamento de despesas pessoais com integração de Inteligência Artificial. Desenvolvido como projeto acadêmico de desenvolvimento Full Stack.
 
+![Demo FinTrack](demo.gif)
+
 ## Funcionalidades
 
 - Registro de despesas manual ou via upload de comprovantes (OCR)
